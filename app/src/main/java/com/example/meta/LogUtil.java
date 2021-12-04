@@ -16,7 +16,7 @@ import java.util.Date;
  * @author chris
  * @create 2021/11/26
  */
-public class MyLog {
+public class LogUtil {
     private static Boolean MYLOG_SWITCH = true; // 日志文件总开关
     private static Boolean MYLOG_WRITE_TO_FILE = true;// 日志写入文件开关
     private static char MYLOG_TYPE = 'v';// 输入日志类型，w代表只输出告警信息等，v代表输出所有信息
@@ -25,7 +25,6 @@ public class MyLog {
     private static String MYLOGFILEName = "log.txt";// 本类输出的日志文件名称
     private static SimpleDateFormat myLogSdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 日志的输出格式
     private static SimpleDateFormat logfile = new SimpleDateFormat("yyyy-MM-dd");// 日志文件格式
-    public Context context;
 
     public static void w(String tag, Object msg) { // 警告信息
         log(tag, msg.toString(), 'w');
@@ -102,7 +101,7 @@ public class MyLog {
         Date nowtime = new Date();
         String needWriteFiel = logfile.format(nowtime);
         String needWriteMessage = myLogSdf.format(nowtime) + "    " + mylogtype + "    " + tag + "    " + text;
-        File dirPath = Environment.getExternalStorageDirectory();
+        //File dirPath = Environment.getExternalStorageDirectory();
 
         File dirsFile = new File(MYLOG_PATH_SDCARD_DIR);
         if (!dirsFile.exists()){

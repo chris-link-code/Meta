@@ -56,7 +56,6 @@ public class ExampleInstrumentedTest {
     public void imagePixelTest() {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         File path = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        // /storage/emulated/0/Android/data/com.example.meta/files/Pictures
         System.out.println(path.getAbsolutePath());
         File[] files = path.listFiles();
         for (File file : files) {

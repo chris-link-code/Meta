@@ -1,6 +1,5 @@
-package com.example.meta;
+ package com.example.meta;
 
-import android.content.Context;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,36 +16,43 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // 获取页面控件
         Button saveButton = findViewById(R.id.saveButton);
         Button closeButton = findViewById(R.id.closeButton);
         TextView resultDisplay = findViewById(R.id.resultTextView);
 
-        Context context = getApplicationContext();
-        InitialApplication.initial(context);
+        // 获得context
+        ApplicationProperties.context = getApplicationContext();
+        // 初始化
+        ApplicationProperties.initial();
 
         //点击事件
         saveButton.setOnClickListener(v -> {
-            long start = System.currentTimeMillis();
+            // long start = System.currentTimeMillis();
             // 清空resultDisplay
             if (resultDisplay.getTextSize() > 0) {
                 resultDisplay.setText("");
             }
-            MyLog.e("INFO", "点击事件");
-            long end = Utils.download();
-            String result = "执行完毕，耗时 " + (end - start) + " 毫秒";
-            MyLog.e("OK", result);
-            resultDisplay.setText(result);
+
+            LogUtil.e("INFO", "点击事件");
+
+            Utils.downloadImage();
+            Utils.downloadVideo();
+
+            LogUtil.e("INFO", "OK");
+            resultDisplay.setText("OK");
         });
 
         //关闭事件
         closeButton.setOnClickListener(v -> {
+            resultDisplay.setText("CLOSING");
             moveTaskToBack(true);
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                MyLog.e("INFO", e.getMessage());
+                LogUtil.e("INFO", e.getMessage());
             }
-            MyLog.e("INFO", "CLOSING");
+            LogUtil.e("INFO", "CLOSING");
             System.exit(0);
         });
 
