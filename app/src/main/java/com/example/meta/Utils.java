@@ -20,6 +20,11 @@ public class Utils {
     public static boolean scanDone = false;
 
     /**
+     * 临时测试
+     */
+    private static CopyOnWriteArrayList<File> tempList = new CopyOnWriteArrayList<>();
+
+    /**
      * 测试路径
      */
     public static void storeMethodTest(Context context) {
@@ -39,6 +44,7 @@ public class Utils {
      */
     public static void copyFile(File source, File dest)
             throws IOException {
+        // LogUtil.e("downloading file", dest.getName());
         FileUtils.copyFile(source, dest);
     }
 
@@ -46,7 +52,39 @@ public class Utils {
      * 下载图片
      */
     public static void downloadImage() {
-        BlockingQueue<File> queue = new LinkedBlockingQueue<>(10000);
+        Utils.getFilteredImage();
+
+        LogUtil.e("need download files", tempList.size());
+        LogUtil.e("start download", System.currentTimeMillis());
+
+        ExecutorService service = Executors.newFixedThreadPool(ApplicationProperties.processor);
+        for (File file : tempList) {
+            if (file != null) {
+                Runnable runnable = () -> {
+                    try {
+                        String newPath = ApplicationProperties.imageSavePath + file.getName().replaceAll(".cnt", ".jpg");
+                        File dest = new File(newPath);
+                        Utils.copyFile(file, dest);
+                    } catch (IOException e) {
+                        LogUtil.e(file.getAbsolutePath() + "COPY ERROR", e.getMessage());
+                    }
+                };
+                service.execute(runnable);
+            }
+        }
+        service.shutdown();
+        try {
+            boolean awaitTermination = service.awaitTermination(30, TimeUnit.MINUTES);
+            LogUtil.e("downloadImage ExecutorService awaitTermination", awaitTermination);
+        } catch (InterruptedException e) {
+            LogUtil.e("downloadImage pool termination interrupted", e.getMessage());
+        }
+        LogUtil.e("download done", System.currentTimeMillis());
+        LogUtil.e("downloadImage ExecutorService isTerminated", service.isTerminated());
+
+
+
+        /*BlockingQueue<File> queue = new LinkedBlockingQueue<>(10000);
         Utils.getAllImage(queue);
         ExecutorService service = Executors.newFixedThreadPool(ApplicationProperties.processor);
         boolean keepCopy = true;
@@ -74,19 +112,18 @@ public class Utils {
             }
         }
         service.shutdown();
-        /**boolean downloading = true;
-         while (downloading) {
-         try {
-         boolean termination = service.awaitTermination(1, TimeUnit.SECONDS);
-         if (termination) {
-         downloading = false;
-         }
-         } catch (InterruptedException e) {
-         MyLog.e("termination interrupted", e.getMessage());
-         }
-         }
-         long end = System.currentTimeMillis();
-         return end;*/
+        boolean downloading = true;
+        while (downloading) {
+            try {
+                boolean termination = service.awaitTermination(1, TimeUnit.SECONDS);
+                if (termination) {
+                    downloading = false;
+                    LogUtil.e("download done", System.currentTimeMillis());
+                }
+            } catch (InterruptedException e) {
+                LogUtil.e("termination interrupted", e.getMessage());
+            }
+        }*/
     }
 
     /**
@@ -133,10 +170,47 @@ public class Utils {
     }
 
     /**
-     * 获取path文件夹下的大图片
+     * 过滤掉小图片
      */
-    public static void getAllImage(BlockingQueue<File> queue) {
+    public static void getFilteredImage() {
+        // public static void getAllImage(BlockingQueue<File> queue) {
         File pathFile = new File(ApplicationProperties.imageCachePath);
+        List<File> list = findFileList(pathFile, null);
+        if (list == null || list.size() < 1) {
+            LogUtil.e(ApplicationProperties.imageCachePath, "There are no picture");
+            return;
+        }
+        LogUtil.e("scan files", list.size());
+
+        ExecutorService service = Executors.newFixedThreadPool(ApplicationProperties.processor);
+        for (File file : list) {
+            try {
+                Runnable runnable = () -> {
+                    if (isBigImage(file)) {
+                        try {
+                            tempList.add(file);
+                        } catch (Exception e) {
+                            LogUtil.e(file.getAbsolutePath(), e.getMessage());
+                        }
+                    }
+                };
+                service.execute(runnable);
+            } catch (Exception e) {
+                LogUtil.e(file.getAbsolutePath(), e.getMessage());
+            }
+        }
+        service.shutdown();
+        try {
+            boolean awaitTermination = service.awaitTermination(30, TimeUnit.MINUTES);
+            LogUtil.e("getFilteredImage ExecutorService awaitTermination", awaitTermination);
+        } catch (InterruptedException e) {
+            LogUtil.e("getFilteredImage pool termination interrupted", e.getMessage());
+        }
+        LogUtil.e("filter done", System.currentTimeMillis());
+        LogUtil.e("getFilteredImage ExecutorService isTerminated", service.isTerminated());
+
+
+        /*File pathFile = new File(ApplicationProperties.imageCachePath);
         List<File> list = findFileList(pathFile, null);
         if (list == null || list.size() < 1) {
             LogUtil.e(ApplicationProperties.imageCachePath, "There are no picture");
@@ -167,12 +241,12 @@ public class Utils {
                 boolean termination = service.awaitTermination(1, TimeUnit.SECONDS);
                 if (termination) {
                     scanDone = true;
-                    LogUtil.e("INFO", "scan done");
+                    LogUtil.e("scan done", System.currentTimeMillis());
                 }
             } catch (InterruptedException e) {
                 LogUtil.e("termination interrupted", e.getMessage());
             }
-        }
+        }*/
     }
 
     /**

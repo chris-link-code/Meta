@@ -1,4 +1,4 @@
- package com.example.meta;
+package com.example.meta;
 
 import android.widget.Button;
 import android.widget.TextView;
@@ -28,18 +28,16 @@ public class MainActivity extends AppCompatActivity {
 
         //点击事件
         saveButton.setOnClickListener(v -> {
-            // long start = System.currentTimeMillis();
             // 清空resultDisplay
             if (resultDisplay.getTextSize() > 0) {
                 resultDisplay.setText("");
             }
 
-            LogUtil.e("INFO", "点击事件");
+            LogUtil.e("点击事件", System.currentTimeMillis());
 
             Utils.downloadImage();
-            Utils.downloadVideo();
+            //Utils.downloadVideo();
 
-            LogUtil.e("INFO", "OK");
             resultDisplay.setText("OK");
         });
 

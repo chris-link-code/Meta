@@ -33,7 +33,7 @@ public class ApplicationProperties {
      */
     public static int imageMinLength;
     /**
-     * 处理器线程数
+     * 处理器核心数
      */
     public static int processor;
 
