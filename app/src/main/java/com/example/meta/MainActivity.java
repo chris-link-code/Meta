@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
         Button closeButton = findViewById(R.id.closeButton);
         TextView resultDisplay = findViewById(R.id.resultTextView);
 
-        // 获得context
+        // 获得context,必须在初始化前获得获得context,初始化要用到
         ApplicationProperties.context = getApplicationContext();
         // 初始化
         ApplicationProperties.initial();

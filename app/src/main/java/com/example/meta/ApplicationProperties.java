@@ -48,7 +48,7 @@ public class ApplicationProperties {
     /**
      * 输入日志类型，w代表只输出告警信息等，v代表输出所有
      */
-    public static String loType;
+    public static char logType;
     /**
      * 日志文件的保存路径
      */
@@ -56,7 +56,7 @@ public class ApplicationProperties {
     /**
      * sd卡中日志文件的最多保存天数
      */
-    public static String logFileSaveDays;
+    public static int logFileSaveDays;
     /**
      * 本类输出的日志文件名称
      */
@@ -85,9 +85,15 @@ public class ApplicationProperties {
             videoCachePath = properties.getVideoCachePath();
             videoSavePath = properties.getVideoSavePath();
             imageMinLength = properties.getImageMinLength();
+            logSwitch = properties.isLogSwitch();
+            logWriteToFile = properties.isLogWriteToFile();
+            logType = properties.getLogType().charAt(0);
+            logSavePath = context.getExternalFilesDir(null).getAbsolutePath() + "/" + properties.getLogSavePath();
+            logFileSaveDays = properties.getLogFileSaveDays();
+            logFileName = properties.getLogFileName();
+            logDateFormat = properties.getLogDateFormat();
+            logFileFormat = properties.getLogFileFormat();
         }
-
-
         processor = Runtime.getRuntime().availableProcessors();
 
         LogUtil.e("CPU cores", processor);
@@ -96,5 +102,13 @@ public class ApplicationProperties {
         LogUtil.e("videoCachePath", videoCachePath);
         LogUtil.e("videoSavePath", videoSavePath);
         LogUtil.e("imageMinLength", imageMinLength);
+        LogUtil.e("logSwitch", logSwitch);
+        LogUtil.e("logWriteToFile", logWriteToFile);
+        LogUtil.e("logType", logType);
+        LogUtil.e("logSavePath", logSavePath);
+        LogUtil.e("logFileSaveDays", logFileSaveDays);
+        LogUtil.e("logFileName", logFileName);
+        LogUtil.e("logDateFormat", logDateFormat);
+        LogUtil.e("logFileFormat", logFileFormat);
     }
 }

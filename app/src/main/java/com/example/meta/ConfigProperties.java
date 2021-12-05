@@ -18,9 +18,9 @@ public class ConfigProperties {
 
     private boolean logSwitch;
     private boolean logWriteToFile;
-    private String loType;
+    private String logType;
     private String logSavePath;
-    private String logFileSaveDays;
+    private int logFileSaveDays;
     private String logFileName;
     private String logDateFormat;
     private String logFileFormat;
@@ -34,15 +34,14 @@ public class ConfigProperties {
         this.videoCachePath = properties.getProperty("video_cache_path");
         this.videoSavePath = properties.getProperty("video_save_path");
         this.imageMinLength = Integer.parseInt(properties.getProperty("image_min_length"));
-
-        logSwitch;
-        logWriteToFile;
-        loType;
-        logSavePath;
-        logFileSaveDays;
-        logFileName;
-        logDateFormat;
-        logFileFormat;
+        this.logSwitch = Boolean.parseBoolean(properties.getProperty("log_switch"));
+        this.logWriteToFile = Boolean.parseBoolean(properties.getProperty("log_write_to_file"));
+        this.logType = properties.getProperty("log_type");
+        this.logSavePath = properties.getProperty("log_save_path");
+        this.logFileSaveDays = Integer.parseInt(properties.getProperty("log_file_save_days"));
+        this.logFileName = properties.getProperty("log_file_name");
+        this.logDateFormat = properties.getProperty("log_date_format");
+        this.logFileFormat = properties.getProperty("log_file_format");
     }
 
     public String getImageCachePath() {
@@ -73,15 +72,15 @@ public class ConfigProperties {
         return logWriteToFile;
     }
 
-    public String getLoType() {
-        return loType;
+    public String getLogType() {
+        return logType;
     }
 
     public String getLogSavePath() {
         return logSavePath;
     }
 
-    public String getLogFileSaveDays() {
+    public int getLogFileSaveDays() {
         return logFileSaveDays;
     }
 
