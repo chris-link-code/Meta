@@ -55,12 +55,22 @@ public class ExampleInstrumentedTest {
     @Test
     public void imagePixelTest() {
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        //File path = context.getExternalFilesDir(null);
         File path = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        //File path = new File("/storage/emulated/0/Music/");
+        //File path = new File("/storage/emulated/0/");
+
+        // /storage/emulated/0/Android/data/com.example.meta/files
+        // /storage/emulated/0/Music/
         System.out.println(path.getAbsolutePath());
         File[] files = path.listFiles();
+        if (files == null || files.length < 1) {
+            System.out.println(path.getAbsolutePath() + " hasn't file");
+            return;
+        }
         for (File file : files) {
+            System.out.println(file.getName());
             if (file.isFile() && file.exists()) {
-                //System.out.println(file.getName());
                 Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
                 if (bitmap != null) {
                     int width = bitmap.getWidth();

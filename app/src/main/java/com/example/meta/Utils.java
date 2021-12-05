@@ -47,7 +47,7 @@ public class Utils {
      */
     public static void downloadImage() {
         BlockingQueue<File> queue = new LinkedBlockingQueue<>(10000);
-        Utils.getAllImage(ApplicationProperties.imageCachePath, queue);
+        Utils.getAllImage(queue);
         ExecutorService service = Executors.newFixedThreadPool(ApplicationProperties.processor);
         boolean keepCopy = true;
         while (keepCopy) {
@@ -95,49 +95,51 @@ public class Utils {
     public static void downloadVideo() {
         File pathFile = new File(ApplicationProperties.videoCachePath);
         List<File> list = findFileList(pathFile, null);
-        if (list != null && list.size() > 0) {
-            ExecutorService service = Executors.newFixedThreadPool(ApplicationProperties.processor);
-            for (File file : list) {
-                try {
-                    if (file != null) {
-                        Runnable runnable = () -> {
-                            try {
-                                String newPath = ApplicationProperties.videoSavePath + file.getName() + ".mp4";
-                                File dest = new File(newPath);
-                                Utils.copyFile(file, dest);
-                            } catch (IOException e) {
-                                LogUtil.e("COPY ERROR", e.getMessage());
-                            }
-                        };
-                        service.execute(runnable);
-                    }
-                } catch (Exception e) {
-                    LogUtil.e(file.getAbsolutePath(), e.getMessage());
-                }
-            }
-            service.shutdown();
-            /**boolean downloading = true;
-             while (downloading) {
-             try {
-             boolean termination = service.awaitTermination(1, TimeUnit.SECONDS);
-             if (termination) {
-             downloading = false;
-             }
-             } catch (InterruptedException e) {
-             MyLog.e("termination interrupted", e.getMessage());
-             }
-             }*/
+        if (list == null || list.size() < 1) {
+            LogUtil.e(ApplicationProperties.videoCachePath, "There are no video");
+            return;
         }
+        ExecutorService service = Executors.newFixedThreadPool(ApplicationProperties.processor);
+        for (File file : list) {
+            try {
+                if (file != null) {
+                    Runnable runnable = () -> {
+                        try {
+                            String newPath = ApplicationProperties.videoSavePath + file.getName() + ".mp4";
+                            File dest = new File(newPath);
+                            Utils.copyFile(file, dest);
+                        } catch (IOException e) {
+                            LogUtil.e("COPY ERROR", e.getMessage());
+                        }
+                    };
+                    service.execute(runnable);
+                }
+            } catch (Exception e) {
+                LogUtil.e(file.getAbsolutePath(), e.getMessage());
+            }
+        }
+        service.shutdown();
+        /**boolean downloading = true;
+         while (downloading) {
+         try {
+         boolean termination = service.awaitTermination(1, TimeUnit.SECONDS);
+         if (termination) {
+         downloading = false;
+         }
+         } catch (InterruptedException e) {
+         MyLog.e("termination interrupted", e.getMessage());
+         }
+         }*/
     }
 
     /**
      * 获取path文件夹下的大图片
      */
-    public static void getAllImage(String path, BlockingQueue<File> queue) {
-        File pathFile = new File(path);
+    public static void getAllImage(BlockingQueue<File> queue) {
+        File pathFile = new File(ApplicationProperties.imageCachePath);
         List<File> list = findFileList(pathFile, null);
-
         if (list == null || list.size() < 1) {
+            LogUtil.e(ApplicationProperties.imageCachePath, "There are no picture");
             return;
         }
         LogUtil.e("scan files", list.size());
@@ -188,6 +190,9 @@ public class Utils {
             list = new ArrayList<>();
         }
         File[] files = path.listFiles();
+        if (files == null || files.length < 1) {
+            return null;
+        }
         for (File file : files) {
             try {
                 if (file.isDirectory()) {
@@ -217,8 +222,7 @@ public class Utils {
                 if (width > ApplicationProperties.imageMinLength && height > ApplicationProperties.imageMinLength) {
                     flag = true;
                 }
-                /**MyLog.e(flag + "\t" + file.getName(),
-                 "width: " + width + "\t height: " + height);*/
+                // LogUtil.e(flag + "\t" + file.getName(), "width: " + width + "\t height: " + height);
             }
         }
         return flag;
