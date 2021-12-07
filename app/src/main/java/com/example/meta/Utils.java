@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @create 2021/11/28
  */
 public class Utils {
-    private static boolean scanDone = false;
     /**
      * 阻塞队列
      */
@@ -26,18 +25,15 @@ public class Utils {
     /**
      * 线程池
      */
-    private static ExecutorService executor;
+    private static ExecutorService executor = Executors.newFixedThreadPool(ApplicationProperties.processor);
     /**
      * 生产者计数
      */
     private static AtomicInteger produceCount = new AtomicInteger();
 
-    /**
-     * 临时测试
-     */
-    /**
-     * private static CopyOnWriteArrayList<File> tempList = new CopyOnWriteArrayList<>();
-     */
+    private static CopyOnWriteArrayList<File> list = new CopyOnWriteArrayList<>();
+
+    // private static boolean scanDone = false;
 
 
     /**
@@ -60,51 +56,78 @@ public class Utils {
      */
     public static void copyFile(File source, File dest)
             throws IOException {
-        //LogUtil.e("downloading file", dest.getName());
+        LogUtil.e("downloading file", dest.getName());
         FileUtils.copyFile(source, dest);
     }
 
     /**
      * 下载图片
+     * 利用阻塞队列LinkedBlockingQueue的生产者消费者模式
      */
-    public static void downloadImage() {
-        /*Utils.getFilteredImage();
-
-        LogUtil.e("need download files", tempList.size());
-        LogUtil.e("start download", System.currentTimeMillis());
-
-        ExecutorService service = Executors.newFixedThreadPool(ApplicationProperties.processor);
-        for (File file : tempList) {
-            if (file != null) {
-                Runnable runnable = () -> {
-                    try {
-                        String newPath = ApplicationProperties.imageSavePath + file.getName().replaceAll(".cnt", ".jpg");
-                        File dest = new File(newPath);
-                        Utils.copyFile(file, dest);
-                    } catch (IOException e) {
-                        LogUtil.e(file.getAbsolutePath() + "COPY ERROR", e.getMessage());
-                    }
-                };
-                service.execute(runnable);
-            }
-        }
-        service.shutdown();
-        try {
-            boolean awaitTermination = service.awaitTermination(30, TimeUnit.MINUTES);
-            LogUtil.e("downloadImage ExecutorService awaitTermination", awaitTermination);
-        } catch (InterruptedException e) {
-            LogUtil.e("downloadImage pool termination interrupted", e.getMessage());
-        }
-        LogUtil.e("download done", System.currentTimeMillis());
-        LogUtil.e("downloadImage ExecutorService isTerminated", service.isTerminated());*/
-
+    public static void downloadImageWithQueue() {
         // TODO: 2021/12/6
         //  查询优秀的生产者消费者模式代码
 
-        executor = Executors.newFixedThreadPool(ApplicationProperties.processor);
-        Utils.getFilteredImage(executor);
+        File pathFile = new File(ApplicationProperties.imageCachePath);
+        List<File> list = findFileList(pathFile, null);
+        if (list == null || list.size() < 1) {
+            LogUtil.e(ApplicationProperties.imageCachePath, "There are no picture");
+            return;
+        }
+        LogUtil.e("scan files", list.size());
 
-        boolean keepDownload = true;
+        for (File file : list) {
+            produceCount.incrementAndGet();
+
+            // 过滤图片线程，生产者线程
+            Runnable filterRunnable = () -> {
+                if (isBigImage(file)) {
+                    try {
+                        queue.put(file);
+                    } catch (InterruptedException e) {
+                        LogUtil.e(file.getAbsolutePath(), e.getMessage());
+                    }
+                }
+            };
+
+            // 复制图片线程，消费者线程
+            Runnable copyRunnable = () -> {
+                try {
+                    /*
+                    * 这里存在问题
+                    * 总会出现消费者线程先执行的情况
+                    * 导致丢数据
+                    */
+                    if (produceCount.get() > 0) {
+                        LogUtil.e("produceCount", produceCount.get());
+                        produceCount.decrementAndGet();
+                        if (!queue.isEmpty()) {
+                            File takeFile = queue.take();
+                            String newPath = ApplicationProperties.imageSavePath + takeFile.getName().replaceAll(".cnt", ".jpg");
+                            File dest = new File(newPath);
+                            Utils.copyFile(takeFile, dest);
+                        }
+                    }
+                } catch (Exception e) {
+                    LogUtil.e(file.getAbsolutePath() + " copy error", e.getMessage());
+                }
+            };
+
+            executor.execute(filterRunnable);
+            executor.execute(copyRunnable);
+        }
+        executor.shutdown();
+
+        try {
+            boolean awaitTermination = executor.awaitTermination(30, TimeUnit.MINUTES);
+            LogUtil.e("ExecutorService awaitTermination", awaitTermination);
+        } catch (InterruptedException e) {
+            LogUtil.e("ExecutorService termination interrupted", e.getMessage());
+        }
+        LogUtil.e("download done", System.currentTimeMillis());
+        LogUtil.e("ExecutorService isTerminated", executor.isTerminated());
+
+       /* boolean keepDownload = true;
         while (keepDownload) {
             if (queue.isEmpty() && (produceCount.get() < 1)) {
                 keepDownload = false;
@@ -144,7 +167,7 @@ public class Utils {
         }
         scanDone = true;
         LogUtil.e("download done", System.currentTimeMillis());
-        LogUtil.e("ExecutorService isTerminated", executor.isTerminated());
+        LogUtil.e("ExecutorService isTerminated", executor.isTerminated());*/
         
 /*
         // 等待过滤图片的线程池执行完毕
@@ -246,7 +269,7 @@ public class Utils {
     /**
      * 过滤掉小图片
      */
-    public static void getFilteredImage(ExecutorService service) {
+    public static void getFilteredImage() {
         /*File pathFile = new File(ApplicationProperties.imageCachePath);
         List<File> list = findFileList(pathFile, null);
         if (list == null || list.size() < 1) {
@@ -303,7 +326,7 @@ public class Utils {
                         }
                     }
                 };
-                service.execute(runnable);
+                executor.execute(runnable);
             } catch (Exception e) {
                 LogUtil.e(file.getAbsolutePath(), e.getMessage());
             }
@@ -348,18 +371,23 @@ public class Utils {
      * 分辨率小于 200 * 200 将认定为小图
      */
     private static boolean isBigImage(File file) {
-        boolean flag = false;
+        boolean bigImage = false;
         if (file.isFile() && file.exists()) {
-            Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
-            if (bitmap != null) {
-                int width = bitmap.getWidth();
-                int height = bitmap.getHeight();
-                if (width > ApplicationProperties.imageMinLength && height > ApplicationProperties.imageMinLength) {
-                    flag = true;
+            try {
+                Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                if (bitmap != null) {
+                    int width = bitmap.getWidth();
+                    int height = bitmap.getHeight();
+
+                    if (width > ApplicationProperties.imageMinLength && height > ApplicationProperties.imageMinLength) {
+                        bigImage = true;
+                        LogUtil.e(file.getName(), "width: " + width + "\t height: " + height);
+                    }
                 }
-                //LogUtil.e(flag + "\t" + file.getName(), "width: " + width + "\t height: " + height);
+            } catch (Exception e) {
+                LogUtil.e(file.getAbsolutePath() + " ERROR", e.getMessage());
             }
         }
-        return flag;
+        return bigImage;
     }
 }

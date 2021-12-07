@@ -1,5 +1,8 @@
 package com.example.meta;
 
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             LogUtil.e("点击事件", System.currentTimeMillis());
+            saveButton.setEnabled(false);
 
             Utils.downloadImage();
             //Utils.downloadVideo();
