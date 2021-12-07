@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
             saveButton.setEnabled(false);
 
             Utils.downloadImage();
-            //Utils.downloadVideo();
+            Utils.downloadVideo();
 
             resultDisplay.setText("OK");
         });

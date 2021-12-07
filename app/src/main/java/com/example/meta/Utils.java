@@ -136,7 +136,7 @@ public class Utils {
             LogUtil.e(ApplicationProperties.imageCachePath, "There are no image to download");
             return;
         }
-        LogUtil.e("Need download files", imageList.size());
+        LogUtil.e("Need download image", imageList.size());
         for (File file : imageList) {
             Runnable runnable = () -> {
                 try {
@@ -156,7 +156,7 @@ public class Utils {
         } catch (InterruptedException e) {
             LogUtil.e("Download image pool termination interrupted", e.getMessage());
         }
-        LogUtil.e("Download done", System.currentTimeMillis());
+        LogUtil.e("Download image done", System.currentTimeMillis());
         LogUtil.e("Download image ExecutorService isTerminated", service.isTerminated());
     }
 
@@ -170,6 +170,7 @@ public class Utils {
             LogUtil.e(ApplicationProperties.videoCachePath, "There are no video to download");
             return;
         }
+        LogUtil.e("Need download video", list.size());
         ExecutorService service = Executors.newFixedThreadPool(ApplicationProperties.processor);
         for (File file : list) {
             try {
@@ -190,17 +191,14 @@ public class Utils {
             }
         }
         service.shutdown();
-        /**boolean downloading = true;
-         while (downloading) {
-         try {
-         boolean termination = service.awaitTermination(1, TimeUnit.SECONDS);
-         if (termination) {
-         downloading = false;
-         }
-         } catch (InterruptedException e) {
-         MyLog.e("termination interrupted", e.getMessage());
-         }
-         }*/
+        try {
+            boolean awaitTermination = service.awaitTermination(30, TimeUnit.MINUTES);
+            LogUtil.e("Download video ExecutorService awaitTermination", awaitTermination);
+        } catch (InterruptedException e) {
+            LogUtil.e("Download video pool termination interrupted", e.getMessage());
+        }
+        LogUtil.e("Download video done", System.currentTimeMillis());
+        LogUtil.e("Download video ExecutorService isTerminated", service.isTerminated());
     }
 
     /**
