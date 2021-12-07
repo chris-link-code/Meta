@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
@@ -38,18 +39,21 @@ public class ExampleInstrumentedTest {
         ExecutorService service = Executors.newFixedThreadPool(processors);
         for (int i = 0; i < 100; i++) {
             final int index = i;
-            System.out.println("task: " + i);
+            // System.out.println("task: " + i);
             Runnable runnable = () -> {
-                System.out.println(Thread.currentThread().getName() + ",thread start " + index);
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                //System.out.println(Thread.currentThread().getName() + ",thread end " + index);
+                System.out.println(Thread.currentThread().getName() + ",thread run " + index);
             };
             service.execute(runnable);
         }
+        service.shutdown();
+        System.out.println(System.currentTimeMillis() + "\t---------------");
+        try {
+            // 确认线程池的所有任务都执行完毕，再执行后面的代码
+            service.awaitTermination(30, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println(System.currentTimeMillis() + "\t++++++++++++++++");
     }
 
     @Test

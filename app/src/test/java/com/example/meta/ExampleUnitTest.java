@@ -35,12 +35,14 @@ public class ExampleUnitTest {
             service.execute(runnable);
         }
         service.shutdown();
+        System.out.println(System.currentTimeMillis() + "\t---------------");
         try {
             // 确认线程池的所有任务都执行完毕，再执行后面的代码
-            service.awaitTermination(1, TimeUnit.MINUTES);
+            service.awaitTermination(30, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println(System.currentTimeMillis() + "\t---------------");
+        System.out.println(System.currentTimeMillis() + "\t++++++++++++++++");
     }
+
 }
