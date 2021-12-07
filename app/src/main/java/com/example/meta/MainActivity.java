@@ -3,10 +3,13 @@ package com.example.meta;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
+
+import java.io.File;
 
 /**
  * @author chris
@@ -23,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
         Button saveButton = findViewById(R.id.saveButton);
         Button closeButton = findViewById(R.id.closeButton);
         TextView resultDisplay = findViewById(R.id.resultTextView);
+        Button deleteImageButton = findViewById(R.id.deleteImageButton);
+        Button deleteVideoButton = findViewById(R.id.deleteVideoButton);
 
         // 获得context,必须在初始化前获得获得context,初始化要用到
         ApplicationProperties.context = getApplicationContext();
@@ -45,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
             resultDisplay.setText("OK");
         });
 
-        //关闭事件
+        // 关闭事件
         closeButton.setOnClickListener(v -> {
             resultDisplay.setText("CLOSING");
             moveTaskToBack(true);
@@ -58,7 +63,19 @@ public class MainActivity extends AppCompatActivity {
             System.exit(0);
         });
 
-        /**
+        // 删除图片缓存
+        deleteImageButton.setOnClickListener(view -> {
+            File file = new File(ApplicationProperties.imageCachePath);
+            Utils.deleteFile(file);
+        });
+
+        // 删除视频缓存
+        deleteVideoButton.setOnClickListener(view -> {
+            File file = new File(ApplicationProperties.videoCachePath);
+            Utils.deleteFile(file);
+        });
+
+        /*
          * 测试Utils的方法
          * 在非Activity中需要用Context方法来调用getExternalFilesDir()
          */
